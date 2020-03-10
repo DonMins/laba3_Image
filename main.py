@@ -9,6 +9,31 @@ def addNoise(im,noise_percentage):
     out[coords] = 255
     return out
 
+
+def noise_percentage(img,img2):
+    p = img.shape
+    width = p[1]
+    height = p[0]
+    countWhite1 = 0
+    countBlack1 = 0
+    countWhite2 = 0
+    countBlack2 = 0
+
+    for i in range(height):
+        for j in range(width):
+            if (img[i, j] == 255):
+                countWhite1 += 1
+            if (img[i, j] == 0):
+                countBlack1 += 1
+            if (img2[i, j] == 255):
+                countWhite2 += 1
+            if (img2[i, j] == 0):
+                countBlack2 += 1
+
+    print("Шума на изображении : " ,
+          (abs(countBlack1 - countBlack2) + abs(countWhite1 - countWhite2))*100 / (width * height))
+
+
 def threshold_processing(img, threshold):
     p = img.shape
     width = p[1]
@@ -24,11 +49,10 @@ def threshold_processing(img, threshold):
     return img
 
 
-def morphology(img):
+def morphology(img, type, sizeMask, typeMask):
     p = img.shape
     width = p[1]
     height = p[0]
-
 # нужно убрать говнокод и сделать обработку границ , при изменение размера маски, в конце он будет выходить за границы картинки
     def erosion(size, type, img, I, J, threshold):
         if type == "cross":
@@ -50,42 +74,48 @@ def morphology(img):
                         return False
             return True
 
-        def erosion(size, type, img, I, J, threshold):
-            if type == "cross":
-                center = int(np.ceil(size / 2) - 1)
-                for i in range(1, center + 1):
-                    bool = img[I, J + i] == threshold or img[I, J - i] == threshold or img[I + i, J] == threshold or \
-                           img[
-                               I - i, J] == threshold
+    def dilation(size, type, img, I, J, threshold):
+        if type == "cross":
+            center = int(np.ceil(size / 2) - 1)
+            for i in range(1, center + 1):
+                bool = img[I, J + i] == threshold or img[I, J - i] == threshold or img[I + i, J] == threshold or \
+                       img[ I - i, J] == threshold
+                if (bool == False):
+                    return False
+            return True
+        if type == "square":
+            center = int(np.ceil(size / 2) - 1)
+            for i in range(1, center + 1):
+                for j in range(1, center + 1):
+                    bool = img[I, J + j] == threshold or img[I, J - j] == threshold or img[
+                        I + i, J] == threshold or img[
+                               I - i, J] == threshold or img[I - i, J - j] == threshold or img[
+                               I - i, J + j] == threshold or \
+                           img[I + i, J - j] == threshold or img[I + i, J + j] == threshold
                     if (bool == False):
                         return False
-                return True
-            if type == "square":
-                center = int(np.ceil(size / 2) - 1)
-                for i in range(1, center + 1):
-                    for j in range(1, center + 1):
-                        bool = img[I, J + j] == threshold or img[I, J - j] == threshold or img[
-                            I + i, J] == threshold or img[
-                                   I - i, J] == threshold or img[I - i, J - j] == threshold or img[
-                                   I - i, J + j] == threshold or \
-                               img[I + i, J - j] == threshold or img[I + i, J + j] == threshold
-                        if (bool == False):
-                            return False
-                return True
+            return True
 
-
-
-    img2 = np.zeros((width + 1, height + 1))
-    img2[1:width + 1, 1:height + 1] = img
+    center = int(np.ceil(sizeMask / 2) - 1)
+    img2 = np.zeros((width + center*2, height + center*2))
+    img2[center:width+center , center:height+center] = img
     img3 = np.copy(img2)
 # нужна обработка границ, смысла в img3 никакого нет
-    for i in range(0, height-1):
-        for j in range(0, width-1):
-            if (erosion(7, 'square', img2, i, j, 255)):
-                img3[i, j] = 255
-            else:
-                img3[i, j] = 0
-    return img3
+    for i in range(0, height):
+        for j in range(0, width):
+            if type == "erosion":
+                if (erosion(sizeMask, typeMask, img2, i, j, 255)):
+                    img3[i, j] = 255
+                else:
+                    img3[i, j] = 0
+
+            if type == "dilation":
+                if (dilation(sizeMask, typeMask, img2, i, j, 255)):
+                    img3[i, j] = 255
+                else:
+                    img3[i, j] = 0
+
+    return img3[center:width + center, center:height + center]
 
 if __name__ == '__main__':
 
@@ -94,25 +124,39 @@ if __name__ == '__main__':
 
     img = threshold_processing(img,195)
 
-    out1 = addNoise(img,1)
-    cv2.imshow("noise1%.jpg", out1)
-
-    out2 = addNoise(img,2 )
-    cv2.imshow("noise2%.jpg", out2)
-
-    out5 = addNoise(img,5 )
-    cv2.imshow("noise5%.jpg", out5)
-
-    out10 = addNoise(img,10 )
-    cv2.imshow("noise10%.jpg", out10)
-
-    out20 = addNoise(img, 20)
-    cv2.imshow("noise20%.jpg", out20)
-
+    # out1 = addNoise(img,1)
+    # cv2.imshow("noise1%.jpg", out1)
+    #
+    # out2 = addNoise(img,2 )
+    # cv2.imshow("noise2%.jpg", out2)
+    # #
+    # out5 = addNoise(img,5 )
+    # cv2.imshow("noise5%.jpg", out5)
+    #
+    # out10 = addNoise(img,10 )
+    # cv2.imshow("noise10%.jpg", out10)
+    #
+    # out20 = addNoise(img, 20)
+    # cv2.imshow("noise20%.jpg", out20)
+    #
     out50 = addNoise(img,50 )
     cv2.imshow("noise50%.jpg", out50)
 
+    # cv2.imshow("erosion1%.jpg", morphology(out1, "erosion", 5, "square"))
+    #
+    # cv2.imshow("dilation1%.jpg", morphology(out1, "dilation", 3, "square"))
+    #
+    # autopsy = morphology(out1, "dilation", 3, "square")
+    # cv2.imshow("closing%.jpg", morphology(autopsy, "erosion", 3, "square"))
+    #
+    # kernel = np.ones((3, 3), np.uint8)
+    # opening = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel)
+    # closing = cv2.morphologyEx(out1, cv2.MORPH_CLOSE, kernel)
+    # dilation = cv2.dilate(img, kernel, iterations=1)
 
-    cv2.imshow("er1%.jpg", morphology(img))
+    # cv2.imshow("closingDefault%.jpg", closing)
+
+
+    noise_percentage(threshold_processing(img,195),out50)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
