@@ -9,33 +9,90 @@ def addNoise(im,noise_percentage):
     out[coords] = 255
     return out
 
-def erosion(img):
-
+def threshold_processing(img, threshold):
     p = img.shape
     width = p[1]
     height = p[0]
-    mask = [[0,255,0],
-            [255,255,255],
-            [0,255,0]]
 
-    img2 = np.zeros((width+1,height+1 ))
-    img2[1:width+1,1:height+1] = img
-    img3 =  np.copy(img2)
-
-
-    for i in range(0,height):
-        for j in range(0, width):
-
-            if (img2[i, j + 1] == 255 and img2[i+1, j]==255 and img2[i-1, j]==255 and img2[i, j - 1] ==255):
-                img3[i,j] = 255
+    for i in range(height):
+        for j in range(width):
+            if (img[i, j] > threshold):
+                img[i, j] = 255
             else:
-                img3[i,j] = 0
+                img[i, j] = 0
+
+    return img
+
+
+def morphology(img):
+    p = img.shape
+    width = p[1]
+    height = p[0]
+
+# нужно убрать говнокод и сделать обработку границ , при изменение размера маски, в конце он будет выходить за границы картинки
+    def erosion(size, type, img, I, J, threshold):
+        if type == "cross":
+            center = int (np.ceil(size / 2) - 1)
+            for i in range(1, center + 1):
+                bool = img[I, J + i] == threshold and img[I, J - i] == threshold and img[I + i, J] == threshold and img[
+                    I - i, J] == threshold
+                if (bool == False):
+                    return False
+            return True
+        if type == "square":
+            center = int(np.ceil(size / 2) - 1)
+            for i in range(1, center + 1):
+                for j in range(1, center + 1):
+                    bool = img[I, J + j] == threshold and img[I, J - j] == threshold and img[I + i, J] == threshold and img[
+                    I - i, J] == threshold and img[I - i, J - j] == threshold and img[I - i, J + j] == threshold and\
+                       img[I + i, J - j] == threshold and img[I + i, J + j] == threshold
+                    if (bool == False):
+                        return False
+            return True
+
+        def erosion(size, type, img, I, J, threshold):
+            if type == "cross":
+                center = int(np.ceil(size / 2) - 1)
+                for i in range(1, center + 1):
+                    bool = img[I, J + i] == threshold or img[I, J - i] == threshold or img[I + i, J] == threshold or \
+                           img[
+                               I - i, J] == threshold
+                    if (bool == False):
+                        return False
+                return True
+            if type == "square":
+                center = int(np.ceil(size / 2) - 1)
+                for i in range(1, center + 1):
+                    for j in range(1, center + 1):
+                        bool = img[I, J + j] == threshold or img[I, J - j] == threshold or img[
+                            I + i, J] == threshold or img[
+                                   I - i, J] == threshold or img[I - i, J - j] == threshold or img[
+                                   I - i, J + j] == threshold or \
+                               img[I + i, J - j] == threshold or img[I + i, J + j] == threshold
+                        if (bool == False):
+                            return False
+                return True
+
+
+
+    img2 = np.zeros((width + 1, height + 1))
+    img2[1:width + 1, 1:height + 1] = img
+    img3 = np.copy(img2)
+# нужна обработка границ, смысла в img3 никакого нет
+    for i in range(0, height-1):
+        for j in range(0, width-1):
+            if (erosion(7, 'square', img2, i, j, 255)):
+                img3[i, j] = 255
+            else:
+                img3[i, j] = 0
     return img3
 
 if __name__ == '__main__':
 
-    img = cv2.imread("rab2Gr.jpg",0)
+    img = cv2.imread("rab2.jpg", 0)
     cv2.imshow('Input image', img)
+
+    img = threshold_processing(img,195)
 
     out1 = addNoise(img,1)
     cv2.imshow("noise1%.jpg", out1)
@@ -56,6 +113,6 @@ if __name__ == '__main__':
     cv2.imshow("noise50%.jpg", out50)
 
 
-    cv2.imshow("er1%.jpg", erosion(out1))
+    cv2.imshow("er1%.jpg", morphology(img))
     cv2.waitKey(0)
     cv2.destroyAllWindows()
