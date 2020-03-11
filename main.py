@@ -3,10 +3,24 @@ import numpy as np
 
 def addNoise(im,noise_percentage):
     vals = len(im.flatten())
+    p = img.shape
+    width = p[1]
+    height = p[0]
+    listAllCoord = []
+    for i in range(height):
+        for j in range(width):
+            listAllCoord.append([i,j])
     out = np.copy(im)
-    num_salt = np.ceil(noise_percentage * vals /100)
-    coords = [np.random.randint(0, i - 1, int(num_salt)) for i in im.shape]
-    out[coords] = 255
+    num_salt = int(np.ceil(noise_percentage * vals /100))
+
+    for i in range(num_salt):
+        # coord = listAllCoord.pop(np.random.randint(0, len(listAllCoord) - 1))
+        coord = [np.random.randint(0, i - 1) for i in im.shape]
+
+        if img[coord[0],coord[1]] == 255:
+            out[coord[0], coord[1]] = 0
+        else :
+            out[coord[0],coord[1]] = 255
     return out
 
 
@@ -23,16 +37,17 @@ def noise_percentage(img,img2):
         for j in range(width):
             if (img[i, j] == 255):
                 countWhite1 += 1
+            else:
+                countBlack1+=1
             if (img2[i, j] == 255):
                 countWhite2 += 1
+            else:
+                countBlack2+=1
 
-    print("Шума на изображении 1 : " ,
-          (abs(countWhite1))*100 / (width * height))
 
-    print("Шума на изображении 2 : " ,
-          (abs(countWhite2))*100 / (width * height))
-
-    print("Отношение : " ,((abs(countWhite1))*100 / (width * height))/ ((abs(countWhite2))*100 / (width * height)))
+    print("Отношение : " ,
+          100*((abs(countWhite1 - countWhite2) + abs(countBlack1 - countBlack2))/ (width * height))
+)
 
 
 
@@ -121,13 +136,14 @@ def morphology(img, type, sizeMask, typeMask):
 
 if __name__ == '__main__':
 
-    # img = cv2.imread("rab2.jpg", 0)
-    # cv2.imshow('Input image', img)
-    #
-    # img = threshold_processing(img,195)
-    #
-    # out1 = addNoise(img,1)
-    # cv2.imshow("noise1%.jpg", out1)
+    img = cv2.imread("rab2.jpg", 0)
+    cv2.imshow('Input image', img)
+
+    img = threshold_processing(img,195)
+    cv2.imshow('Input image', img)
+
+    out1 = addNoise(img,1)
+    cv2.imshow("noise1%.jpg", out1)
     #
     # out2 = addNoise(img,2 )
     # cv2.imshow("noise2%.jpg", out2)
@@ -141,36 +157,38 @@ if __name__ == '__main__':
     # out20 = addNoise(img, 20)
     # cv2.imshow("noise20%.jpg", out20)
     #
-    # out50 = addNoise(img,50 )
-    # cv2.imshow("noise50%.jpg", out50)
-    #
-    # av  = morphology(out50, "erosion", 3, "cross")
-    # #
-    # cv2.imshow("dilation1%.jpg", morphology(av, "erosion", 5, "cross"))
-    #
-    # autopsy = morphology(out1, "dilation", 3, "square")
-    # cv2.imshow("closing%.jpg", morphology(autopsy, "erosion", 3, "square"))
-    #
-    # kernel = np.ones((3, 3), np.uint8)
-    # opening = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel)
-    # closing = cv2.morphologyEx(out1, cv2.MORPH_CLOSE, kernel)
-    # dilation = cv2.dilate(img, kernel, iterations=1)
+    out50 = addNoise(img,50 )
+    cv2.imshow("noise50%.jpg", out50)
 
-    # cv2.imshow("closingDefault%.jpg", closing)
-
-
-    # noise_percentage(morphology(av, "dilation", 3, "cross"),out50)
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
+    av  = morphology(out50, "erosion", 3, "cross")
     #
+    cv2.imshow("dilation1%.jpg", morphology(av, "erosion", 5, "cross"))
+
+    autopsy = morphology(out50, "dilation", 3, "square")
+    cv2.imshow("closing%.jpg", morphology(autopsy, "erosion", 3, "square"))
+
+    kernel = np.ones((3, 3), np.uint8)
+    opening = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel)
+    closing = cv2.morphologyEx(out50 ,cv2.MORPH_CLOSE, kernel)
+    dilation = cv2.dilate(img, kernel, iterations=1)
+
+    cv2.imshow("closingDefault%.jpg", closing)
+
+
+    noise_percentage(img,out50)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
     #
     #--------------------Контура---------------------------
 
-    img = cv2.imread("rec.jpg",0)
-    img = threshold_processing(img,195)
-    cv2.imshow('Input image', img)
+    # img = cv2.imread("rec.jpg",0)
+    # img = threshold_processing(img,195)
+    # cv2.imshow('Input image', img)
+    #
+    # cv2.imshow("dilation1.jpg", morphology(img, "dilation1", 7, "square"))
+    # out1 = addNoise(img, 50)
+    # cv2.imshow("noise50%.jpg", out1)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
 
-    cv2.imshow("dilation1.jpg", morphology(img, "dilation1", 7, "square"))
-
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
