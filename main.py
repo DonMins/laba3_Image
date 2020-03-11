@@ -23,15 +23,17 @@ def noise_percentage(img,img2):
         for j in range(width):
             if (img[i, j] == 255):
                 countWhite1 += 1
-            if (img[i, j] == 0):
-                countBlack1 += 1
             if (img2[i, j] == 255):
                 countWhite2 += 1
-            if (img2[i, j] == 0):
-                countBlack2 += 1
 
-    print("Шума на изображении : " ,
-          (abs(countBlack1 - countBlack2) + abs(countWhite1 - countWhite2))*100 / (width * height))
+    print("Шума на изображении 1 : " ,
+          (abs(countWhite1))*100 / (width * height))
+
+    print("Шума на изображении 2 : " ,
+          (abs(countWhite2))*100 / (width * height))
+
+    print("Отношение : " ,((abs(countWhite1))*100 / (width * height))/ ((abs(countWhite2))*100 / (width * height)))
+
 
 
 def threshold_processing(img, threshold):
@@ -97,8 +99,8 @@ def morphology(img, type, sizeMask, typeMask):
             return True
 
     center = int(np.ceil(sizeMask / 2) - 1)
-    img2 = np.zeros((width + center*2, height + center*2))
-    img2[center:width+center , center:height+center] = img
+    img2 = np.zeros(( height + center*2, width + center*2,))
+    img2[center:height+center,center:width+center] = img
     img3 = np.copy(img2)
 # нужна обработка границ, смысла в img3 никакого нет
     for i in range(0, height):
@@ -115,21 +117,21 @@ def morphology(img, type, sizeMask, typeMask):
                 else:
                     img3[i, j] = 0
 
-    return img3[center:width + center, center:height + center]
+    return img3[center:height + center,  center:width + center]
 
 if __name__ == '__main__':
 
-    img = cv2.imread("rab2.jpg", 0)
-    cv2.imshow('Input image', img)
-
-    img = threshold_processing(img,195)
-
+    # img = cv2.imread("rab2.jpg", 0)
+    # cv2.imshow('Input image', img)
+    #
+    # img = threshold_processing(img,195)
+    #
     # out1 = addNoise(img,1)
     # cv2.imshow("noise1%.jpg", out1)
     #
     # out2 = addNoise(img,2 )
     # cv2.imshow("noise2%.jpg", out2)
-    # #
+    #
     # out5 = addNoise(img,5 )
     # cv2.imshow("noise5%.jpg", out5)
     #
@@ -139,12 +141,12 @@ if __name__ == '__main__':
     # out20 = addNoise(img, 20)
     # cv2.imshow("noise20%.jpg", out20)
     #
-    out50 = addNoise(img,50 )
-    cv2.imshow("noise50%.jpg", out50)
-
-    # cv2.imshow("erosion1%.jpg", morphology(out1, "erosion", 5, "square"))
+    # out50 = addNoise(img,50 )
+    # cv2.imshow("noise50%.jpg", out50)
     #
-    # cv2.imshow("dilation1%.jpg", morphology(out1, "dilation", 3, "square"))
+    # av  = morphology(out50, "erosion", 3, "cross")
+    # #
+    # cv2.imshow("dilation1%.jpg", morphology(av, "erosion", 5, "cross"))
     #
     # autopsy = morphology(out1, "dilation", 3, "square")
     # cv2.imshow("closing%.jpg", morphology(autopsy, "erosion", 3, "square"))
@@ -157,6 +159,18 @@ if __name__ == '__main__':
     # cv2.imshow("closingDefault%.jpg", closing)
 
 
-    noise_percentage(threshold_processing(img,195),out50)
+    # noise_percentage(morphology(av, "dilation", 3, "cross"),out50)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
+    #
+    #
+    #--------------------Контура---------------------------
+
+    img = cv2.imread("rec.jpg",0)
+    img = threshold_processing(img,195)
+    cv2.imshow('Input image', img)
+
+    cv2.imshow("dilation1.jpg", morphology(img, "dilation1", 7, "square"))
+
     cv2.waitKey(0)
     cv2.destroyAllWindows()
