@@ -1,3 +1,5 @@
+import operator
+
 import  cv2
 import numpy as np
 
@@ -117,7 +119,7 @@ def morphology(img, type, sizeMask, typeMask):
     img2 = np.zeros(( height + center*2, width + center*2,))
     img2[center:height+center,center:width+center] = img
     img3 = np.copy(img2)
-# нужна обработка границ, смысла в img3 никакого нет
+
     for i in range(0, height):
         for j in range(0, width):
             if type == "erosion":
@@ -162,23 +164,6 @@ if __name__ == '__main__':
 
     av  = morphology(out50, "erosion", 3, "cross")
     #
-    cv2.imshow("dilation1%.jpg", morphology(av, "erosion", 5, "cross"))
-
-    autopsy = morphology(out50, "dilation", 3, "square")
-    cv2.imshow("closing%.jpg", morphology(autopsy, "erosion", 3, "square"))
-
-    kernel = np.ones((3, 3), np.uint8)
-    opening = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel)
-    closing = cv2.morphologyEx(out50 ,cv2.MORPH_CLOSE, kernel)
-    dilation = cv2.dilate(img, kernel, iterations=1)
-
-    cv2.imshow("closingDefault%.jpg", closing)
-
-
-    noise_percentage(img,out50)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-
     #
     #--------------------Контура---------------------------
 
@@ -191,4 +176,16 @@ if __name__ == '__main__':
     # cv2.imshow("noise50%.jpg", out1)
     # cv2.waitKey(0)
     # cv2.destroyAllWindows()
+    img = cv2.imread("rab2Gr.jpg", 0)
+    cv2.imshow('Input image', img)
+    kernel = np.ones((3, 3), np.uint8)
+    dilation = cv2.dilate(img, kernel, iterations=1)
+    p1=img.shape[0]
+    p2=img.shape[1]
+    img2=img
+    for i in range (p1):
+        for j in range(p2):
+            img2[i,j]= operator.xor(dilation[i,j], img[i,j])
+    cv2.imshow(' image', img2)
+    cv2.waitKey(0)
 
