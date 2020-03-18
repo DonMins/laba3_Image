@@ -1,4 +1,6 @@
 import operator
+import random
+
 import  cv2
 import numpy as np
 
@@ -113,15 +115,15 @@ class cv3:
                 listAllCoord.append([i, j])
         out = np.copy(im)
         num_salt = int(np.ceil(noise_percentage * vals / 100))
+        random.shuffle(listAllCoord)
+
 
         for i in range(num_salt):
-            coord = [np.random.randint(0, i - 1) for i in im.shape]
 
-            if img[coord[0], coord[1]] == 255:
-                out[coord[0], coord[1]] = 0
+            if img[listAllCoord[i][0], listAllCoord[i][1]] == 255:
+                out[listAllCoord[i][0], listAllCoord[i][1]] = 0
             else:
-                out[coord[0], coord[1]] = 255
-
+                out[listAllCoord[i][0], listAllCoord[i][1]] = 255
         return out
 
     @staticmethod
